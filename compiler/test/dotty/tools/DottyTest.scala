@@ -38,7 +38,7 @@ trait DottyTest extends ContextEscapeDetection {
 
   protected def initializeCtx(fc: FreshContext): Unit = {
     fc.setSetting(fc.settings.encoding, "UTF8")
-    fc.setSetting(fc.settings.classpath, Jars.dottyLib)
+    fc.setSetting(fc.settings.classpath, Jars.dottyTestDeps.mkString(":"))
   }
 
   private def compilerWithChecker(phase: String)(assertion: (tpd.Tree, Context) => Unit) = new Compiler {

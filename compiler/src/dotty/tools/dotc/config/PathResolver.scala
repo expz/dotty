@@ -214,9 +214,14 @@ class PathResolver(implicit ctx: Context) {
      *  - If neither of those, then "." is used.
      */
     def userClassPath = {
-      if (!settings.classpath.isDefault)
-        settings.classpath.value
-      else sys.env.getOrElse("CLASSPATH", ".")
+      if (!settings.classpath.isDefault) {
+        settings.classpath.value match {
+          case null => ""
+          case x => x
+        }
+      } else {
+        sys.env.getOrElse("CLASSPATH", ".")
+      }
     }
 
     import classPathFactory._

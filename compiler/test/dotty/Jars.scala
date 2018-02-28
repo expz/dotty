@@ -36,16 +36,24 @@ object Jars {
   def scalaLibrary: String = sys.env.get("DOTTY_SCALA_LIBRARY")
     .getOrElse(findJarFromRuntime("scala-library-2."))
 
+  def getAllURLs(cl: ClassLoader): Array[java.net.URL] = cl match {
+    case null => Array()
+    case u: java.net.URLClassLoader => u.getURLs() ++ getAllURLs(cl.getParent)
+    case _ => getAllURLs(cl.getParent)
+  }
+
+  lazy val classpathURLs: List[String] = getAllURLs(getClass.getClassLoader)
+    .map(_.getFile.toString).toList
+
   /** Gets the scala 2.* library at runtime, note that doing this is unsafe
    *  unless you know that the library will be on the classpath of the running
    *  application. It is currently safe to call this function if the tests are
    *  run by sbt.
    */
   private def findJarFromRuntime(partialName: String) = {
-    val urls = ClassLoader.getSystemClassLoader.asInstanceOf[java.net.URLClassLoader].getURLs.map(_.getFile.toString)
-    urls.find(_.contains(partialName)).getOrElse {
+    classpathURLs.find(_.contains(partialName)).getOrElse {
       throw new java.io.FileNotFoundException(
-        s"""Unable to locate $partialName on classpath:\n${urls.toList.mkString("\n")}"""
+        s"""Unable to locate $partialName on classpath:\n${classpathURLs.mkString("\n")}"""
       )
     }
   }
